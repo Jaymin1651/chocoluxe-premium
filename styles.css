@@ -78,8 +78,6 @@ html { scroll-padding-top: 130px; }
 .toast { position: fixed; left: 50%; bottom: 108px; transform: translateX(-50%); z-index: 9; max-width: calc(100% - 32px); display: flex; align-items: center; gap: 16px; padding: 12px 16px; border-radius: 8px; background: var(--ink); color: var(--cream); box-shadow: 0 8px 35px #30201925; font-size: 11px; animation: toast-in .2s ease-out; }
 .toast button { background: transparent; color: var(--light-gold); font-size: 10px; padding: 6px 0; white-space: nowrap; }
 @keyframes toast-in { from { opacity: 0; bottom: 100px; } to { opacity: 1; bottom: 108px; } }
-.reveal-enter { animation: reveal-in .65s ease-out both; }
-@keyframes reveal-in { from { opacity: .5; translate: 0 15px; } to { opacity: 1; translate: 0 0; } }
 @media(max-width:1100px) {
   .brand-logo { height: 55px; width: 55px; }
   .flavour-finder { grid-template-columns: 1fr 1.8fr; gap: 25px; padding: 24px; }
@@ -133,11 +131,44 @@ html { scroll-padding-top: 130px; }
   .flavour-match small { font-size: 8px; }
 }
 @media(prefers-reduced-motion:reduce) {
-  .hero-photo.is-switching img, .reveal-enter, .toast { animation: none; }
+  .hero-photo.is-switching img, .toast { animation: none; }
 }
 @media(max-width:350px) {
   .finder-results { grid-template-columns: 1fr; }
   .flavour-match strong { font-size: 16px; }
   .flavour-match img { width: 35px; height: 46px; }
   .flavour-match>span:last-child { display: block; }
+}
+
+/* Small, one-time entrances: the browser keeps its normal scroll and touch behavior. */
+.scroll-reveal {
+  opacity: 0;
+  translate: var(--reveal-x, 0) var(--reveal-y, 30px);
+  transition:
+    opacity 760ms cubic-bezier(.22, 1, .36, 1) var(--reveal-delay, 0ms),
+    translate 760ms cubic-bezier(.22, 1, .36, 1) var(--reveal-delay, 0ms),
+    transform 250ms ease,
+    box-shadow 250ms ease,
+    border-color 250ms ease;
+}
+.slide-from-left { --reveal-x: -24px; --reveal-y: 10px; }
+.slide-from-right { --reveal-x: 24px; --reveal-y: 10px; }
+.scroll-reveal.is-visible,
+.scroll-reveal:focus-within {
+  opacity: 1;
+  translate: 0 0;
+}
+.scroll-reveal:focus-within { transition-delay: 0ms; }
+@media(max-width:760px) {
+  .scroll-reveal { --reveal-y: 22px; }
+  .slide-from-left { --reveal-x: -12px; --reveal-y: 8px; }
+  .slide-from-right { --reveal-x: 12px; --reveal-y: 8px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  html { scroll-behavior: auto; }
+  .scroll-reveal, .scroll-reveal.is-visible, .scroll-reveal:focus-within { opacity: 1; translate: none; transition: none; }
+}
+@media print {
+  .scroll-reveal, .scroll-reveal.is-visible, .scroll-reveal:focus-within { opacity: 1; translate: none; transition: none; }
+  .header { position: static; }
 }

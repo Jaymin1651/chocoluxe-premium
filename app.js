@@ -299,11 +299,58 @@ window.addEventListener('scroll', () => {
 }, { passive: true });
 window.addEventListener('resize', updateScrollState);
 updateScrollState();
-if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) { entry.target.classList.add('reveal-enter'); observer.unobserve(entry.target); }
-    });
-  }, { threshold: .08 });
-  document.querySelectorAll('.section-head, .flavour-finder, .product, .story-content, .order-panel').forEach(element => observer.observe(element));
+// Scroll entrances enhance normal browser scrolling; no wheel or touch events are intercepted.
+const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+const revealTargets = [...document.querySelectorAll(
+  '.benefits > span, .section-head, .flavour-finder, .collection-tools, .collection-meta, ' +
+  '.product, .collection-card, .story-image, .story-content, .details > div, ' +
+  '.order-panel, .footer-main > div, .footer-bottom'
+)];
+let revealObserver = null;
+function revealElement(element) {
+  element.classList.add('is-visible');
+  revealObserver?.unobserve(element);
 }
+function revealAllContent() {
+  revealObserver?.disconnect();
+  revealTargets.forEach(revealElement);
+}
+function initialiseScrollEffects() {
+  if (motionPreference.matches || !('IntersectionObserver' in window)) return;
+  try {
+    revealObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) revealElement(entry.target);
+      });
+    }, { threshold: 0, rootMargin: '0px 0px -28px 0px' });
+    const columns = Math.max(1, getComputedStyle($('#products')).gridTemplateColumns.split(' ').length);
+    cards.forEach((card, index) => card.style.setProperty('--reveal-delay', `${(index % columns) * 75}ms`));
+    document.querySelectorAll('.benefits > span, .footer-main > div').forEach((element, index) => {
+      element.style.setProperty('--reveal-delay', `${(index % 4) * 60}ms`);
+    });
+    revealTargets.forEach(element => {
+      element.classList.add('scroll-reveal');
+      if (element.matches('.story-image')) element.classList.add('slide-from-left');
+      if (element.matches('.story-content')) element.classList.add('slide-from-right');
+      const bounds = element.getBoundingClientRect();
+      // Direct links, restored scroll positions and content already onscreen remain readable.
+      if (bounds.top < window.innerHeight - 28 && bounds.bottom > 0) revealElement(element);
+      else revealObserver.observe(element);
+    });
+  } catch {
+    revealAllContent();
+  }
+}
+// Reveal immediately for keyboard navigation, even before the observer's next frame.
+document.addEventListener('focusin', event => {
+  const target = event.target.closest('.scroll-reveal');
+  if (target) revealElement(target);
+});
+window.addEventListener('pageshow', event => {
+  if (event.persisted) revealAllContent();
+});
+motionPreference.addEventListener('change', event => {
+  if (event.matches) revealAllContent();
+  else if (!revealObserver) initialiseScrollEffects();
+});
+initialiseScrollEffects();
