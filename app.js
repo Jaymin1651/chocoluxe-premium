@@ -47,6 +47,7 @@ function updateTray() {
   $('#headerCount').textContent = total.count;
   $('#headerTray').setAttribute('aria-label', `View tasting tray, ${total.count} boxes`);
   $('#tray').hidden = total.count === 0;
+  cards.forEach(card => { card.querySelector('.quick-add').disabled = (tray[card.dataset.id] || 0) >= 999; });
   $('#traySummary').textContent = `${total.count} box${total.count === 1 ? '' : 'es'} · ${currency(total.price)}`;
   try { localStorage.setItem(storageKey, JSON.stringify(tray)); } catch { /* Storage is optional. */ }
 }
@@ -173,7 +174,11 @@ function openTray() {
   $('#trayDialog').showModal();
 }
 
-cards.forEach(card => card.querySelector('.quick').addEventListener('click', () => openProduct(card)));
+cards.forEach(card => {
+  card.querySelector('.quick').addEventListener('click', () => openProduct(card));
+  card.querySelector('.photo-open').addEventListener('click', () => openProduct(card));
+  card.querySelector('.quick-add').addEventListener('click', () => addSelection(card.dataset.id, 1));
+});
 document.querySelectorAll('.filter').forEach(button => button.addEventListener('click', () => {
   activeFilter = button.dataset.filter;
   document.querySelectorAll('.filter').forEach(filter => {
@@ -188,9 +193,7 @@ $('#minus').addEventListener('click', () => { quantity = Math.max(1, quantity - 
 $('#plus').addEventListener('click', () => { quantity = Math.min(999, quantity + 1); updateQuantity(); });
 $('#addButton').addEventListener('click', () => {
   if (!currentProduct || (tray[currentProduct.id] || 0) + quantity > 999) return;
-  tray[currentProduct.id] = (tray[currentProduct.id] || 0) + quantity;
-  updateTray();
-  $('#announcement').textContent = `${quantity} ${currentProduct.name} box${quantity === 1 ? '' : 'es'} added to your tasting tray.`;
+  addSelection(currentProduct.id, quantity);
   $('#productDialog').close();
 });
 $('#headerTray').addEventListener('click', openTray);
@@ -201,3 +204,106 @@ document.querySelectorAll('dialog').forEach(dialog => dialog.addEventListener('c
   if (event.target === dialog && (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom)) dialog.close();
 }));
 updateTray();
+
+// Shortcuts use the same catalogue prices and quantity limits as the product dialog.
+let toastTimer;
+function addSelection(id, count) {
+  if (!products[id] || !Number.isSafeInteger(count) || count < 1 || (tray[id] || 0) + count > 999) return;
+  tray[id] = (tray[id] || 0) + count;
+  updateTray();
+  $('#toastMessage').textContent = `${count} × ${products[id].name} added to your tray`;
+  $('#trayToast').hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { $('#trayToast').hidden = true; }, 4500);
+}
+$('#toastReview').addEventListener('click', () => { $('#trayToast').hidden = true; openTray(); });
+
+const moodMatches = {
+  comfort: { ids: ['milk', 'fusion'], text: 'Soft, creamy favourites for a comforting little moment.' },
+  bold: { ids: ['dark', 'extra-dark'], text: 'A deeper cocoa character for your bolder side.' },
+  adventure: { ids: ['paan', 'fusion'], text: 'A playful twist when you want something a little different.' },
+  crunch: { ids: ['butterscotch', 'choco-crunch'], text: 'A satisfying crunch with your chocolate indulgence.' }
+};
+function selectMood(mood) {
+  const selection = moodMatches[mood];
+  $('#finderSummary').textContent = selection.text;
+  document.querySelectorAll('[data-mood]').forEach(button => {
+    button.setAttribute('aria-pressed', String(button.dataset.mood === mood));
+  });
+  $('#finderResults').replaceChildren();
+  selection.ids.forEach(id => {
+    const product = products[id];
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'flavour-match';
+    button.setAttribute('aria-label', `Discover ${product.name}, ${currency(product.price)} per box`);
+    const image = document.createElement('img');
+    image.src = product.image;
+    image.alt = '';
+    const copy = document.createElement('span');
+    const name = document.createElement('strong');
+    name.textContent = product.name;
+    const price = document.createElement('small');
+    price.textContent = `${currency(product.price)} / box`;
+    copy.append(name, price);
+    const arrow = document.createElement('span');
+    arrow.textContent = '↗';
+    arrow.setAttribute('aria-hidden', 'true');
+    button.append(image, copy, arrow);
+    button.addEventListener('click', () => openProduct(cards.find(card => card.dataset.id === id)));
+    $('#finderResults').append(button);
+  });
+}
+document.querySelectorAll('[data-mood]').forEach(button => button.addEventListener('click', () => selectMood(button.dataset.mood)));
+selectMood('comfort');
+$('#flavourFinder').hidden = false;
+
+// Visitors control the showcase themselves; photographs never change while being read.
+const spotlightIds = ['butterscotch', 'paan', 'fusion'];
+let spotlightIndex = 0;
+function showSpotlight(index) {
+  spotlightIndex = index;
+  const product = products[spotlightIds[index]];
+  $('#heroImage').src = product.image;
+  $('#heroImage').alt = `${product.name} chocolates and ChocoLuxe gift box`;
+  $('#heroName').textContent = product.name;
+  $('#heroPrice').textContent = `${currency(product.price)} / box`;
+  $('#heroProduct').setAttribute('aria-label', `Discover ${product.name}`);
+  document.querySelectorAll('[data-slide]').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.slide) === index)));
+  $('.hero-photo').classList.remove('is-switching');
+  void $('.hero-photo').offsetWidth;
+  $('.hero-photo').classList.add('is-switching');
+}
+document.querySelectorAll('[data-slide]').forEach(button => button.addEventListener('click', () => showSpotlight(Number(button.dataset.slide))));
+$('#nextSpotlight').addEventListener('click', () => showSpotlight((spotlightIndex + 1) % spotlightIds.length));
+$('#heroProduct').addEventListener('click', () => openProduct(cards.find(card => card.dataset.id === spotlightIds[spotlightIndex])));
+$('.hero-showcase').hidden = false;
+
+let scrollFramePending = false;
+function updateScrollState() {
+  const travel = document.documentElement.scrollHeight - window.innerHeight;
+  $('.header').style.setProperty('--scroll-progress', travel > 0 ? Math.min(1, Math.max(0, window.scrollY / travel)) : 0);
+  $('.header').classList.toggle('is-scrolled', window.scrollY > 10);
+  const links = [...document.querySelectorAll('.topnav a')];
+  const sections = links.map(link => document.querySelector(link.getAttribute('href')));
+  let active = -1;
+  sections.forEach((section, index) => { if (section.getBoundingClientRect().top <= 180) active = index; });
+  links.forEach((link, index) => {
+    if (index === active) link.setAttribute('aria-current', 'location');
+    else link.removeAttribute('aria-current');
+  });
+  scrollFramePending = false;
+}
+window.addEventListener('scroll', () => {
+  if (!scrollFramePending) { scrollFramePending = true; requestAnimationFrame(updateScrollState); }
+}, { passive: true });
+window.addEventListener('resize', updateScrollState);
+updateScrollState();
+if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) { entry.target.classList.add('reveal-enter'); observer.unobserve(entry.target); }
+    });
+  }, { threshold: .08 });
+  document.querySelectorAll('.section-head, .flavour-finder, .product, .story-content, .order-panel').forEach(element => observer.observe(element));
+}
