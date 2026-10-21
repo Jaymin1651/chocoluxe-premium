@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChocoLuxe — Wholesale Price List</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-top:#eef7fc; --bg-bottom:#cfe6f5;
+    --cream:#fffdf8; --cream-2:#fbf5e8;
+    --ink:#2c1a0f; --ink-soft:#5a3d26; --ink-mute:#8a6b48;
+    --gold:#c9a24c; --gold-line:#e6d29c; --card-border:#ecdfbf;
+    --copper:#8a4b1c;
+    --whatsapp:#22bf58;
+    --lilac:#9a7fc4; --lilac-soft:#efe9f8;
+    --sage:#7fa15f; --sage-soft:#eaf3e2;
+    --maxw:760px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    font-family:'Karla',Arial,sans-serif;
+    background:linear-gradient(180deg,var(--bg-top) 0%,var(--bg-bottom) 100%);
+    color:var(--ink-soft);
+    line-height:1.55;
+    font-size:16px;
+  }
+  a{color:inherit;}
+  img{max-width:100%;display:block;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:36px 20px 48px;}
+
+  /* ---------- header ---------- */
+  header{text-align:center;}
+  .logo{
+    width:96px;height:96px;border-radius:50%;object-fit:cover;
+    border:3px solid var(--gold);
+    box-shadow:0 6px 16px rgba(44,26,15,0.22);
+    margin:0 auto;
+  }
+  .brandname{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:clamp(32px,8vw,44px);
+    color:var(--ink);
+    margin-top:14px;
+    letter-spacing:0.3px;
+  }
+  .tagline{
+    font-size:11.5px;
+    letter-spacing:3.5px;
+    color:var(--ink-mute);
+    margin-top:4px;
+    text-transform:uppercase;
+    font-weight:600;
+  }
+  .rule{
+    width:150px;height:2px;margin:20px auto;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  }
+  .title-block{text-align:center;margin-bottom:26px;}
+  .title-block h1{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:clamp(24px,6vw,32px);
+    color:var(--ink);
+  }
+  .title-block p{
+    font-size:15px;
+    color:var(--ink-soft);
+    margin-top:8px;
+    max-width:42ch;
+    margin-left:auto;margin-right:auto;
+  }
+  .tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:16px;}
+  .tag{
+    font-size:12px;font-weight:600;letter-spacing:0.3px;
+    padding:6px 14px;border-radius:999px;border:1px solid var(--gold-line);
+    background:var(--cream);color:var(--ink-soft);
+  }
+  .tag.lilac{background:var(--lilac-soft);border-color:#ded0f0;color:#5b3f8a;}
+  .tag.sage{background:var(--sage-soft);border-color:#d6e6c9;color:#3f5c2c;}
+
+  /* ---------- hero ---------- */
+  figure.hero{margin:28px 0 8px;text-align:center;}
+  figure.hero img{
+    border-radius:20px;
+    box-shadow:0 14px 30px rgba(44,26,15,0.25);
+    width:100%;
+  }
+  figure.hero figcaption{
+    font-family:'Fraunces',serif;font-style:italic;
+    font-size:14px;color:var(--ink-mute);
+    margin-top:12px;
+  }
+
+  /* ---------- value strip ---------- */
+  .value-strip{
+    display:flex;flex-wrap:wrap;justify-content:center;
+    gap:14px 28px;
+    margin:30px 0;
+    padding:18px 6px;
+    border-top:1px solid var(--gold-line);
+    border-bottom:1px solid var(--gold-line);
+  }
+  .value-item{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--ink-soft);font-weight:500;}
+  .bean{
+    width:8px;height:12px;border-radius:60% 0 60% 0;
+    background:linear-gradient(135deg,var(--gold),#a9803a);
+    flex-shrink:0;
+  }
+
+  /* ---------- sections ---------- */
+  .section-title{
+    font-family:'Fraunces',serif;font-style:italic;font-weight:500;
+    font-size:clamp(21px,5vw,25px);
+    color:var(--ink);
+    text-align:center;
+    margin-bottom:20px;
+  }
+
+  /* ---------- product cards ---------- */
+  .products{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:26px;}
+  .product-card{
+    background:var(--cream);
+    border:1px solid var(--card-border);
+    border-radius:18px;
+    padding:18px 20px;
+    display:flex;gap:15px;align-items:flex-start;
+    box-shadow:0 6px 16px rgba(44,26,15,0.08);
+  }
+  .swatch{
+    width:50px;height:50px;border-radius:50%;flex-shrink:0;margin-top:2px;
+    box-shadow:inset 0 0 0 4px rgba(255,255,255,0.55),0 3px 8px rgba(0,0,0,0.22);
+  }
+  .sw-dark{background:radial-gradient(circle at 35% 30%,#6b4327,#3a2211 70%);}
+  .sw-extradark{background:radial-gradient(circle at 35% 30%,#3a241a,#150b06 70%);}
+  .sw-milk{background:radial-gradient(circle at 35% 30%,#c68a52,#8a5a30 70%);}
+  .sw-dw{background:linear-gradient(135deg,#3a2211 0%,#3a2211 42%,#f5e9cd 52%,#f5e9cd 100%);}
+  .product-info{flex:1;min-width:0;}
+  .product-info h3{
+    font-family:'Fraunces',serif;font-weight:600;
+    font-size:19px;color:var(--ink);margin-bottom:3px;
+  }
+  .note{font-style:italic;font-size:13.5px;color:var(--ink-mute);margin-bottom:8px;line-height:1.45;}
+  .meta{font-size:12.5px;color:var(--ink-mute);margin-bottom:10px;}
+  .price-row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;}
+  .price{font-family:'Fraunces',serif;font-weight:700;font-size:25px;color:var(--copper);}
+  .price-unit{font-size:11.5px;color:var(--ink-mute);}
+  .perpiece{font-size:11.5px;color:var(--ink-mute);margin-top:3px;}
+
+  /* ---------- craft strip ---------- */
+  .craft{
+    display:flex;flex-direction:column;gap:16px;
+    background:var(--cream);border:1px solid var(--card-border);
+    border-radius:18px;padding:18px;
+    box-shadow:0 6px 16px rgba(44,26,15,0.08);
+    margin-bottom:28px;
+  }
+  .craft img{
+    width:100%;max-width:260px;margin:0 auto;
+    border-radius:12px;box-shadow:0 6px 14px rgba(0,0,0,0.2);
+  }
+  .craft-text{font-size:14px;color:var(--ink-soft);line-height:1.6;}
+  .craft-text strong{color:var(--ink);}
+
+  /* ---------- order section ---------- */
+  .order{text-align:center;margin:34px 0 8px;}
+  .order p{font-size:14.5px;color:var(--ink-soft);max-width:40ch;margin:8px auto 0;}
+  .btn-row{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:18px;}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:14px 24px;border-radius:999px;
+    font-size:14.5px;font-weight:700;letter-spacing:0.2px;
+    text-decoration:none;min-height:46px;
+    transition:transform .15s ease;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-whatsapp{background:var(--whatsapp);color:#fff;box-shadow:0 8px 18px rgba(34,191,88,0.32);}
+  .btn-call{background:transparent;border:2px solid var(--gold);color:var(--ink);}
+  .btn:focus-visible{outline:3px solid var(--copper);outline-offset:2px;}
+
+  /* ---------- footer ---------- */
+  footer{text-align:center;margin-top:42px;}
+  .footer-note{font-size:12.5px;color:var(--ink-mute);line-height:1.65;margin:16px auto;max-width:52ch;}
+  .contact-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 18px;margin-top:4px;}
+  .contact-chip{
+    font-size:13px;font-weight:700;color:var(--ink);
+    text-decoration:none;border-bottom:1px dotted var(--gold);
+    padding-bottom:2px;
+  }
+  .contact-chip:hover{color:var(--copper);}
+  .brandfoot{font-family:'Fraunces',serif;font-style:italic;font-size:13px;color:var(--ink-mute);margin-top:18px;}
+
+  /* ---------- desktop ---------- */
+  @media (min-width:640px){
+    .wrap{padding:56px 40px 64px;}
+    .products{grid-template-columns:1fr 1fr;}
+    .craft{flex-direction:row;align-items:center;padding:22px 26px;}
+    .craft img{max-width:150px;flex-shrink:0;}
+  }
+</style>
+</head>
+<body>
+<!-- Customizing for a specific retailer? Add their name/city in the line below. -->
+<div class="wrap">
+
+  <header>
+    <img class="logo" src="IMG-20260826-WA0007.jpg" alt="ChocoLuxe logo">
+    <div class="brandname">ChocoLuxe</div>
+    <div class="tagline">Premium Hand Made Chocolate</div>
+  </header>
+
+  <div class="rule"></div>
+
+  <div class="title-block">
+    <h1>Wholesale Price List</h1>
+    <p>Hand-finished chocolates, ready for your retail counter — gift-shop quality at a bulk-order price.</p>
+    <div class="tags">
+      <span class="tag">Retail counters</span>
+      <span class="tag lilac">Gifting boxes</span>
+      <span class="tag sage">Festive hampers</span>
+    </div>
+  </div>
+
+  <figure class="hero">
+    <img src="1787752610736.png" alt="Boxed ChocoLuxe chocolates, foil-wrapped in lilac and sage">
+    <figcaption>Individually foil-wrapped in signature lilac &amp; sage</figcaption>
+  </figure>
+
+  <div class="value-strip">
+    <div class="value-item"><span class="bean"></span>Hand-crafted in small batches</div>
+    <div class="value-item"><span class="bean"></span>Premium couverture chocolate</div>
+    <div class="value-item"><span class="bean"></span>Individually foil-wrapped</div>
+    <div class="value-item"><span class="bean"></span>Custom branding on request</div>
+  </div>
+
+  <div class="section-title">Our Chocolate Collection</div>
+
+  <div class="products">
+
+    <div class="product-card">
+      <div class="swatch sw-dark"></div>
+      <div class="product-info">
+        <h3>Dark Chocolate</h3>
+        <div class="note">Smooth and deep, with a gentle bitterness that balances any gift box.</div>
+        <div class="meta">200g box &nbsp;&bull;&nbsp; 30 pcs</div>
+        <div class="price-row"><span class="price">&#8377;125</span><span class="price-unit">/ box (wholesale)</span></div>
+        <div class="perpiece">&asymp; &#8377;4.2 per piece</div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="swatch sw-extradark"></div>
+      <div class="product-info">
+        <h3>Extra Dark Chocolate</h3>
+        <div class="note">Bold, intense cocoa character for the true chocolate purist.</div>
+        <div class="meta">200g box &nbsp;&bull;&nbsp; 30 pcs</div>
+        <div class="price-row"><span class="price">&#8377;137</span><span class="price-unit">/ box (wholesale)</span></div>
+        <div class="perpiece">&asymp; &#8377;4.6 per piece</div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="swatch sw-milk"></div>
+      <div class="product-info">
+        <h3>Milk Chocolate</h3>
+        <div class="note">Creamy and mellow — an easy favourite across every age group.</div>
+        <div class="meta">200g box &nbsp;&bull;&nbsp; 30 pcs</div>
+        <div class="price-row"><span class="price">&#8377;129</span><span class="price-unit">/ box (wholesale)</span></div>
+        <div class="perpiece">&asymp; &#8377;4.3 per piece</div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="swatch sw-dw"></div>
+      <div class="product-info">
+        <h3>Fusion Bite Chocolate</h3>
+        <div class="note">A hand-marbled swirl of bold and creamy, finished for a striking look.</div>
+        <div class="meta">200g box &nbsp;&bull;&nbsp; 30 pcs</div>
+        <div class="price-row"><span class="price">&#8377;120</span><span class="price-unit">/ box (wholesale)</span></div>
+        <div class="perpiece">&asymp; &#8377;4.0 per piece</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="craft">
+    <img src="IMG-20260826-WA0007.jpg" alt="Close-up of foil-wrapped ChocoLuxe chocolates in a branded box">
+    <div class="craft-text">
+      <strong>Hand-crafted, hand-marbled, hand-finished.</strong><br>
+      Every piece is made in small batches with premium couverture chocolate and elegant foil wrapping —
+      gift-shop quality at a bulk-order price. Ideal for retail counters, gifting boxes and festive hampers
+      across all your branches.
+    </div>
+  </div>
+
+  <div class="order">
+    <div class="section-title">How to Order</div>
+    <p>Reach out on WhatsApp or call directly to confirm quantities, delivery and custom packaging.</p>
+    <div class="btn-row">
+      <a class="btn btn-whatsapp" href="https://wa.me/919974157344" target="_blank" rel="noopener">Chat on WhatsApp</a>
+      <a class="btn btn-call" href="tel:+919974157344">Call now</a>
+    </div>
+  </div>
+
+  <footer>
+    <div class="rule"></div>
+    <div class="footer-note">
+      Wholesale pricing above is valid for bulk orders and this partnership only. Custom packaging &amp; branding available on request.
+    </div>
+    <div class="contact-row">
+      <a class="contact-chip" href="https://wa.me/919974157344" target="_blank" rel="noopener">+91 99741 57344</a>
+      <a class="contact-chip" href="https://wa.me/918320457503" target="_blank" rel="noopener">+91 83204 57503</a>
+      <a class="contact-chip" href="mailto:chocoluxe0129@gmail.com">chocoluxe0129@gmail.com</a>
+    </div>
+    <!-- Optional: add FSSAI License No. / GSTIN / Instagram handle here if you'd like them on the catalogue -->
+    <div class="brandfoot">ChocoLuxe — Premium Hand Made Chocolate</div>
+  </footer>
+
+</div>
+</body>
+</html>

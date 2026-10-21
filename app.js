@@ -1,181 +1,370 @@
 'use strict';
 
-const productCatalog = {
-  dark: {
-    name: 'Dark',
-    tag: 'Classic',
-    description: 'Smooth, rich and beautifully balanced with a gentle finish.',
-    prices: { 200: 165, 400: 328 },
-    image: { 200: 'dark.png', 400: 'Dark 400.png' }
-  },
-  'extra-dark': {
-    name: 'Extra Dark',
-    tag: 'Classic',
-    description: 'Bold, intense and elegantly bitter with a lingering cocoa finish.',
-    prices: { 200: 180, 400: 364 },
-    image: { 200: 'extra dark.png', 400: 'Extra dark 400.png' }
-  },
-  milk: {
-    name: 'Milk',
-    tag: 'Classic',
-    description: 'Creamy, smooth and loved by every chocolate lover.',
-    prices: { 200: 155, 400: 308 },
-    image: { 200: 'milk.png', 400: 'milk 400.png' }
-  },
-  fusion: {
-    name: 'Fusion Bite',
-    tag: 'Signature',
-    description: 'A playful blend of rich chocolate and layered flavour notes.',
-    prices: { 200: 155, 400: 308 },
-    image: { 200: 'fusion bite.png', 400: 'fusion 400.png' }
-  },
-  paan: {
-    name: 'Paan',
-    tag: 'Signature',
-    description: 'A refreshing paan-inspired flavour with a vibrant finish.',
-    prices: { 200: 166, 400: 332 },
-    image: { 200: 'pan.jpg', 400: 'Pan 400.png' }
-  },
-  butterscotch: {
-    name: 'Butterscotch',
-    tag: 'Crunch',
-    description: 'Golden butterscotch notes meet smooth chocolate and a satisfying crunch.',
-    prices: { 200: 156, 400: 312 },
-    image: { 200: 'butterscoch.png', 400: 'butter scoch 400.png' }
-  },
-  'choco-crunch': {
-    name: 'Choco Crunch',
-    tag: 'Crunch',
-    description: 'Crisp, crunchy and rich with a deep cocoa finish.',
-    prices: { 200: 158, 400: 316 },
-    image: { 200: 'choco crunch.jpg', 400: 'choco crunch 400.png' }
-  }
+const $ = selector => document.querySelector(selector);
+const cards = [...document.querySelectorAll('.product')];
+const categories = { classic: 'Cocoa Classics', signature: 'Signature Flavours', crunch: 'Crunch Collection' };
+const descriptions = {
+  milk: 'Creamy, mellow and instantly likeable. An easy favourite for sharing, thoughtful gifts and everyday celebrations.',
+  dark: 'Smooth, deep and beautifully balanced. A timeless cocoa character for moments that call for a richer bite.',
+  'extra-dark': 'A bold, intense cocoa character with a lingering finish. A little indulgence for the devoted chocolate lover.',
+  fusion: 'A hand-marbled swirl of bold and creamy chocolate, finished with a striking look and a playful bite.',
+  paan: 'A familiar paan-inspired flavour in a playful chocolate form. A colourful addition to your gifting selection or tasting tray.',
+  butterscotch: 'Chocolate meets golden butterscotch pieces for a sweet, satisfying crunch. A little texture in every indulgent bite.',
+  'choco-crunch': 'A chocolate favourite with a crisp, crunchy texture. Made for anyone who likes a little extra bite with their chocolate.'
 };
+const baseProducts = Object.fromEntries(cards.map(card => [card.dataset.id, {
+  id: card.dataset.id,
+  name: card.querySelector('h3').textContent,
+  category: categories[card.dataset.type],
+  price: Number(card.dataset.price),
+  price400: Number(card.dataset['price-400'] || 0),
+  image: card.querySelector('img').getAttribute('src'),
+  image400: ({ milk: 'milk 400.png', dark: 'Dark 400.png', 'extra-dark': 'Extra dark 400.png', fusion: 'fusion 400.png', paan: 'Pan 400.png', butterscotch: 'butter scoch 400.png', 'choco-crunch': 'choco crunch 400.png' })[card.dataset.id],
+  description: descriptions[card.dataset.id]
+}]));
+const products = Object.fromEntries(Object.entries(baseProducts).flatMap(([id, product]) => [[id, { ...product, id, weight: 200 }], [`${id}-400`, { ...product, id: `${id}-400`, baseId: id, weight: 400, price: product.price400, image: product.image400 }]]));
+const currency = value => `₹${value.toLocaleString('en-IN')}`;
+const tray = {};
+const storageKey = 'chocoluxe-tasting-tray-v1';
+let currentProduct = null;
+let quantity = 1;
+let activeFilter = 'all';
 
-const currency = value => `₹${Number(value).toLocaleString('en-IN')}`;
-const productList = document.getElementById('productList');
-const trayCountEl = document.getElementById('trayCount');
-const trayPriceEl = document.getElementById('trayPrice');
-const trayButtonHome = document.getElementById('trayButtonHome');
-const topTrayCount = document.getElementById('topTrayCount');
-const trayBar = document.getElementById('trayBar');
-const trayAction = document.getElementById('trayAction');
-
-function getTray() {
-  return JSON.parse(localStorage.getItem('chocoluxe-tray-v1') || '{}');
-}
-
-function setTray(tray) {
-  localStorage.setItem('chocoluxe-tray-v1', JSON.stringify(tray));
-}
-
-function updateTrayUi() {
-  const tray = getTray();
-  const keys = Object.keys(tray);
-  const totalQty = keys.reduce((sum, key) => sum + Number(tray[key] || 0), 0);
-  const totalPrice = keys.reduce((sum, key) => {
-    const product = productCatalog[key];
-    if (!product) return sum;
-    return sum + Number(product.prices[200] || 0) * Number(tray[key] || 0);
-  }, 0);
-
-  trayCountEl.textContent = `${totalQty || 0} box${totalQty === 1 ? '' : 'es'}`;
-  trayPriceEl.textContent = currency(totalPrice || 0);
-  trayButtonHome.textContent = `Your tray ${totalQty || 0}`;
-  topTrayCount.textContent = String(totalQty || 0);
-  trayBar.style.display = 'flex';
-}
-
-function renderProducts() {
-  const productIds = Object.keys(productCatalog);
-
-  productList.innerHTML = productIds
-    .map((id) => {
-      const product = productCatalog[id];
-      const primaryImage = product.image[200];
-      return `
-        <article class="product-card" data-id="${id}">
-          <div class="product-visual">
-            <img src="${primaryImage}" alt="${product.name} chocolate box" />
-            <div class="fssai-badge">FSSAI<br />certified</div>
-          </div>
-          <div class="product-body">
-            <div class="product-top">
-              <span class="product-tag">${product.tag}</span>
-              <div class="size-options">
-                <button class="size-option active" type="button" data-id="${id}" data-size="200">200g</button>
-                <button class="size-option" type="button" data-id="${id}" data-size="400">400g</button>
-              </div>
-            </div>
-
-            <h3 class="product-name">${product.name}</h3>
-            <p class="product-desc">${product.description}</p>
-
-            <div class="product-footer">
-              <div class="product-price">${currency(product.prices[200])}</div>
-              <div class="product-actions">
-                <button class="view-btn" type="button" data-id="${id}">View</button>
-                <button class="add-btn-inline" type="button" data-id="${id}" aria-label="Add ${product.name}">+</button>
-              </div>
-            </div>
-          </div>
-        </article>
-      `;
-    })
-    .join('');
-
-  document.querySelectorAll('.size-option').forEach((button) => {
-    button.addEventListener('click', (event) => {
-      const { id, size } = event.currentTarget.dataset;
-      const product = productCatalog[id];
-      const card = event.currentTarget.closest('.product-card');
-      const priceEl = card.querySelector('.product-price');
-
-      card.querySelectorAll('.size-option').forEach((option) => option.classList.toggle('active', option === event.currentTarget));
-      priceEl.textContent = currency(product.prices[size]);
-
-      const newImage = product.image[size] || product.image[200];
-      card.querySelector('.product-visual img').src = newImage;
-    });
+// Product prices always come from the catalogue, never from stored browser data.
+try {
+  const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+  Object.keys(products).forEach(id => {
+    if (Number.isSafeInteger(saved?.[id]) && saved[id] > 0 && saved[id] <= 999) tray[id] = saved[id];
   });
+} catch { /* Private browsing or invalid saved data must not block the catalogue. */ }
 
-  document.querySelectorAll('.view-btn').forEach((button) => {
-    button.addEventListener('click', () => {
-      const id = button.dataset.id;
-      const card = button.closest('.product-card');
-      const selectedSize = card.querySelector('.size-option.active')?.dataset.size || '200';
-      window.location.href = `product.html?id=${encodeURIComponent(id)}&size=${selectedSize}`;
-    });
-  });
-
-  document.querySelectorAll('.add-btn-inline').forEach((button) => {
-    button.addEventListener('click', () => {
-      const id = button.dataset.id;
-      const tray = getTray();
-      tray[id] = (Number(tray[id]) || 0) + 1;
-      setTray(tray);
-      updateTrayUi();
-    });
-  });
+function trayTotals() {
+  return Object.entries(tray).reduce((totals, [id, count]) => ({
+    count: totals.count + count,
+    price: totals.price + products[id].price * count
+  }), { count: 0, price: 0 });
 }
 
-trayAction.addEventListener('click', () => {
-  window.location.href = '#collection';
+function updateTray() {
+  const total = trayTotals();
+  $('#headerCount').textContent = total.count;
+  $('#headerTray').setAttribute('aria-label', `View tasting tray, ${total.count} boxes`);
+  $('#tray').hidden = total.count === 0;
+  cards.forEach(card => { card.querySelector('.quick-add').disabled = (tray[card.dataset.id] || 0) >= 999; });
+  $('#traySummary').textContent = `${total.count} box${total.count === 1 ? '' : 'es'} · ${currency(total.price)}`;
+  try { localStorage.setItem(storageKey, JSON.stringify(tray)); } catch { /* Storage is optional. */ }
+}
+
+function applyCollection() {
+  const sort = $('#sortProducts').value;
+  const ordered = [...cards];
+  if (sort !== 'featured') ordered.sort((a, b) => sort === 'price-asc'
+    ? Number(a.dataset.price) - Number(b.dataset.price)
+    : Number(b.dataset.price) - Number(a.dataset.price));
+  ordered.forEach(card => {
+    card.hidden = activeFilter !== 'all' && card.dataset.type !== activeFilter;
+    $('#products').insertBefore(card, $('.collection-card'));
+  });
+  const visibleCount = cards.filter(card => !card.hidden).length;
+  $('#resultCount').textContent = activeFilter === 'all'
+    ? `Showing all ${visibleCount} flavours`
+    : `${categories[activeFilter]} · ${visibleCount} flavours`;
+  $('.collection-card').hidden = activeFilter !== 'all';
+}
+
+function openProduct(card) {
+  window.location.href = `product.html?id=${encodeURIComponent(card.dataset.id)}&weight=200`;
+}
+
+function openProductDialogLegacy(card) {
+  currentProduct = products[card.dataset.id];
+  quantity = 1;
+  $('#modalImage').src = currentProduct.image;
+  $('#modalImage').alt = `${currentProduct.name} chocolates and ChocoLuxe gift box`;
+  $('#modalCategory').textContent = currentProduct.category;
+  $('#modalTitle').textContent = currentProduct.name;
+  $('#modalCopy').textContent = currentProduct.description;
+  $('#modalPrice').textContent = currency(currentProduct.price);
+  updateQuantity();
+  $('#productDialog').showModal();
+}
+
+function updateQuantity() {
+  $('#qtyValue').textContent = quantity;
+  $('#minus').disabled = quantity === 1;
+  $('#plus').disabled = quantity === 999;
+  $('#addButton').disabled = (tray[currentProduct.id] || 0) + quantity > 999;
+  $('#addButton').textContent = $('#addButton').disabled
+    ? 'Maximum 999 boxes per flavour'
+    : `Add ${quantity} box${quantity === 1 ? '' : 'es'} · ${currency(quantity * currentProduct.price)}`;
+}
+
+function createQuantityButton(label, text, handler) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.setAttribute('aria-label', label);
+  button.textContent = text;
+  button.addEventListener('click', handler);
+  return button;
+}
+
+function renderTray() {
+  const container = $('#trayItems');
+  container.replaceChildren();
+  Object.entries(tray).forEach(([id, count]) => {
+    const product = products[id];
+    const item = document.createElement('div');
+    item.className = 'tray-item';
+    const image = document.createElement('img');
+    image.src = product.image;
+    if (product.weight === 400) {
+      const extensions = ['.jpg', '.jpeg', '.webp', '.PNG', '.JPG'];
+      let fallbackIndex = 0;
+      image.addEventListener('error', () => {
+        if (fallbackIndex < extensions.length) image.src = product.image.replace(/\\.(png|jpg|jpeg|webp)$/i, extensions[fallbackIndex++]);
+      });
+    }
+    image.alt = product.name + ' ' + product.weight + 'g';
+    const info = document.createElement('div');
+    const title = document.createElement('h3');
+    title.textContent = product.name;
+    const price = document.createElement('p');
+    price.textContent = `${currency(product.price)} / ${product.weight}g box`;
+    const controls = document.createElement('div');
+    controls.className = 'qty';
+    const decrease = createQuantityButton(`Decrease ${product.name} boxes`, '−', () => changeTray(id, -1));
+    const output = document.createElement('output');
+    output.textContent = count;
+    output.setAttribute('aria-label', `${product.name} box quantity`);
+    const increase = createQuantityButton(`Increase ${product.name} boxes`, '+', () => changeTray(id, 1));
+    increase.disabled = count >= 999;
+    controls.append(decrease, output, increase);
+    info.append(title, price, controls);
+    const end = document.createElement('div');
+    const subtotal = document.createElement('p');
+    subtotal.className = 'tray-item-total';
+    subtotal.textContent = currency(product.price * count);
+    const remove = createQuantityButton(`Remove ${product.name}`, 'Remove', () => {
+      delete tray[id]; updateTray(); renderTray();
+      $('#announcement').textContent = `${product.name} removed from your tray.`;
+      $('#trayDialog .close').focus();
+    });
+    remove.className = 'remove-item';
+    end.append(subtotal, remove);
+    item.append(image, info, end);
+    container.append(item);
+  });
+  const totals = trayTotals();
+  if (!totals.count) {
+    const empty = document.createElement('p');
+    empty.className = 'tray-empty';
+    empty.textContent = 'Your tray is waiting for a little joy. Explore the collection and add your favourite flavours.';
+    container.append(empty);
+  }
+  $('#traySubtotal').textContent = currency(totals.price);
+  $('#whatsappOrder').hidden = totals.count === 0;
+  const lines = Object.entries(tray).map(([id, count]) =>
+    `${count} x ${products[id].name} ${products[id].weight}g — ${currency(products[id].price)} per box = ${currency(products[id].price * count)}`);
+  const message = ['Hello ChocoLuxe, I would like to enquire about this selection:', '', ...lines, '',
+    `Total: ${totals.count} boxes`, `Wholesale product subtotal: ${currency(totals.price)}`,
+    'Please confirm availability, delivery and packaging options.'].join('\n');
+  $('#whatsappOrder').href = `https://wa.me/919974157344?text=${encodeURIComponent(message)}`;
+}
+
+function changeTray(id, amount) {
+  const next = tray[id] + amount;
+  if (next > 999) return;
+  if (next <= 0) delete tray[id]; else tray[id] = next;
+  updateTray();
+  renderTray();
+  const buttons = [...$('#trayItems').querySelectorAll('button')];
+  const target = buttons.find(button => button.getAttribute('aria-label') === `${amount > 0 ? 'Increase' : 'Decrease'} ${products[id].name} boxes`);
+  (target && !target.disabled ? target : $('#trayDialog .close')).focus();
+  $('#announcement').textContent = `${products[id].name}: ${next} boxes in your tray.`;
+}
+
+function openTray() {
+  renderTray();
+  $('#trayDialog').showModal();
+}
+
+cards.forEach(card => {
+  card.querySelector('.quick').addEventListener('click', () => openProduct(card));
+  card.querySelector('.photo-open').addEventListener('click', () => openProduct(card));
+  card.querySelector('.quick-add').addEventListener('click', () => addSelection(card.dataset.id, 1));
 });
-
-trayButtonHome.addEventListener('click', () => {
-  window.location.href = '#collection';
+document.querySelectorAll('.filter').forEach(button => button.addEventListener('click', () => {
+  activeFilter = button.dataset.filter;
+  document.querySelectorAll('.filter').forEach(filter => {
+    const active = filter === button;
+    filter.classList.toggle('active', active);
+    filter.setAttribute('aria-pressed', String(active));
+  });
+  applyCollection();
+}));
+$('#sortProducts').addEventListener('change', applyCollection);
+$('#minus').addEventListener('click', () => { quantity = Math.max(1, quantity - 1); updateQuantity(); });
+$('#plus').addEventListener('click', () => { quantity = Math.min(999, quantity + 1); updateQuantity(); });
+$('#addButton').addEventListener('click', () => {
+  if (!currentProduct || (tray[currentProduct.id] || 0) + quantity > 999) return;
+  addSelection(currentProduct.id, quantity);
+  $('#productDialog').close();
 });
+$('#headerTray').addEventListener('click', openTray);
+$('#trayButton').addEventListener('click', openTray);
+document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
+document.querySelectorAll('dialog').forEach(dialog => dialog.addEventListener('click', event => {
+  const bounds = dialog.getBoundingClientRect();
+  if (event.target === dialog && (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom)) dialog.close();
+}));
+updateTray();
 
-renderProducts();
-updateTrayUi();
+// Shortcuts use the same catalogue prices and quantity limits as the product dialog.
+let toastTimer;
+function addSelection(id, count) {
+  if (!products[id] || !Number.isSafeInteger(count) || count < 1 || (tray[id] || 0) + count > 999) return;
+  tray[id] = (tray[id] || 0) + count;
+  updateTray();
+  $('#toastMessage').textContent = `${count} × ${products[id].name} ${products[id].weight}g added to your tray`;
+  $('#trayToast').hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { $('#trayToast').hidden = true; }, 4500);
+}
+$('#toastReview').addEventListener('click', () => { $('#trayToast').hidden = true; openTray(); });
 
-const menuButton = document.querySelector('.menu-btn');
-const drawer = document.querySelector('.drawer-menu');
-
-if (menuButton && drawer) {
-  menuButton.addEventListener('click', () => {
-    const next = drawer.style.display === 'block' ? 'none' : 'block';
-    drawer.style.display = next;
+const moodMatches = {
+  comfort: { ids: ['milk', 'fusion'], text: 'Soft, creamy favourites for a comforting little moment.' },
+  bold: { ids: ['dark', 'extra-dark'], text: 'A deeper cocoa character for your bolder side.' },
+  adventure: { ids: ['paan', 'fusion'], text: 'A playful twist when you want something a little different.' },
+  crunch: { ids: ['butterscotch', 'choco-crunch'], text: 'A satisfying crunch with your chocolate indulgence.' }
+};
+function selectMood(mood) {
+  const selection = moodMatches[mood];
+  $('#finderSummary').textContent = selection.text;
+  document.querySelectorAll('[data-mood]').forEach(button => {
+    button.setAttribute('aria-pressed', String(button.dataset.mood === mood));
+  });
+  $('#finderResults').replaceChildren();
+  selection.ids.forEach(id => {
+    const product = products[id];
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'flavour-match';
+    button.setAttribute('aria-label', `Discover ${product.name}, ${currency(product.price)} per box`);
+    const image = document.createElement('img');
+    image.src = product.image;
+    image.alt = '';
+    const copy = document.createElement('span');
+    const name = document.createElement('strong');
+    name.textContent = product.name;
+    const price = document.createElement('small');
+    price.textContent = `${currency(product.price)} / ${product.weight}g box`;
+    copy.append(name, price);
+    const arrow = document.createElement('span');
+    arrow.textContent = '↗';
+    arrow.setAttribute('aria-hidden', 'true');
+    button.append(image, copy, arrow);
+    button.addEventListener('click', () => openProduct(cards.find(card => card.dataset.id === id)));
+    $('#finderResults').append(button);
   });
 }
+document.querySelectorAll('[data-mood]').forEach(button => button.addEventListener('click', () => selectMood(button.dataset.mood)));
+selectMood('comfort');
+$('#flavourFinder').hidden = false;
+
+// Visitors control the showcase themselves; photographs never change while being read.
+const spotlightIds = ['butterscotch', 'paan', 'fusion'];
+let spotlightIndex = 0;
+function showSpotlight(index) {
+  spotlightIndex = index;
+  const product = products[spotlightIds[index]];
+  $('#heroImage').src = product.image;
+  $('#heroImage').alt = `${product.name} chocolates and ChocoLuxe gift box`;
+  $('#heroName').textContent = product.name;
+  $('#heroPrice').textContent = `${currency(product.price)} / box`;
+  $('#heroProduct').setAttribute('aria-label', `Discover ${product.name}`);
+  document.querySelectorAll('[data-slide]').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.slide) === index)));
+  $('.hero-photo').classList.remove('is-switching');
+  void $('.hero-photo').offsetWidth;
+  $('.hero-photo').classList.add('is-switching');
+}
+document.querySelectorAll('[data-slide]').forEach(button => button.addEventListener('click', () => showSpotlight(Number(button.dataset.slide))));
+$('#nextSpotlight').addEventListener('click', () => showSpotlight((spotlightIndex + 1) % spotlightIds.length));
+$('#heroProduct').addEventListener('click', () => openProduct(cards.find(card => card.dataset.id === spotlightIds[spotlightIndex])));
+$('.hero-showcase').hidden = false;
+
+let scrollFramePending = false;
+function updateScrollState() {
+  const travel = document.documentElement.scrollHeight - window.innerHeight;
+  $('.header').style.setProperty('--scroll-progress', travel > 0 ? Math.min(1, Math.max(0, window.scrollY / travel)) : 0);
+  $('.header').classList.toggle('is-scrolled', window.scrollY > 10);
+  const links = [...document.querySelectorAll('.topnav a')];
+  const sections = links.map(link => document.querySelector(link.getAttribute('href')));
+  let active = -1;
+  sections.forEach((section, index) => { if (section.getBoundingClientRect().top <= 180) active = index; });
+  links.forEach((link, index) => {
+    if (index === active) link.setAttribute('aria-current', 'location');
+    else link.removeAttribute('aria-current');
+  });
+  scrollFramePending = false;
+}
+window.addEventListener('scroll', () => {
+  if (!scrollFramePending) { scrollFramePending = true; requestAnimationFrame(updateScrollState); }
+}, { passive: true });
+window.addEventListener('resize', updateScrollState);
+updateScrollState();
+// Scroll entrances enhance normal browser scrolling; no wheel or touch events are intercepted.
+const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+const revealTargets = [...document.querySelectorAll(
+  '.benefits > span, .section-head, .flavour-finder, .collection-tools, .collection-meta, ' +
+  '.product, .collection-card, .story-image, .story-content, .details > div, ' +
+  '.order-panel, .footer-main > div, .footer-bottom'
+)];
+let revealObserver = null;
+function revealElement(element) {
+  element.classList.add('is-visible');
+  revealObserver?.unobserve(element);
+}
+function revealAllContent() {
+  revealObserver?.disconnect();
+  revealTargets.forEach(revealElement);
+}
+function initialiseScrollEffects() {
+  if (motionPreference.matches || !('IntersectionObserver' in window)) return;
+  try {
+    revealObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) revealElement(entry.target);
+      });
+    }, { threshold: 0, rootMargin: '0px 0px -28px 0px' });
+    const columns = Math.max(1, getComputedStyle($('#products')).gridTemplateColumns.split(' ').length);
+    cards.forEach((card, index) => card.style.setProperty('--reveal-delay', `${(index % columns) * 75}ms`));
+    document.querySelectorAll('.benefits > span, .footer-main > div').forEach((element, index) => {
+      element.style.setProperty('--reveal-delay', `${(index % 4) * 60}ms`);
+    });
+    revealTargets.forEach(element => {
+      element.classList.add('scroll-reveal');
+      if (element.matches('.story-image')) element.classList.add('slide-from-left');
+      if (element.matches('.story-content')) element.classList.add('slide-from-right');
+      const bounds = element.getBoundingClientRect();
+      // Direct links, restored scroll positions and content already onscreen remain readable.
+      if (bounds.top < window.innerHeight - 28 && bounds.bottom > 0) revealElement(element);
+      else revealObserver.observe(element);
+    });
+  } catch {
+    revealAllContent();
+  }
+}
+// Reveal immediately for keyboard navigation, even before the observer's next frame.
+document.addEventListener('focusin', event => {
+  const target = event.target.closest('.scroll-reveal');
+  if (target) revealElement(target);
+});
+window.addEventListener('pageshow', event => {
+  if (event.persisted) revealAllContent();
+});
+motionPreference.addEventListener('change', event => {
+  if (event.matches) revealAllContent();
+  else if (!revealObserver) initialiseScrollEffects();
+});
+initialiseScrollEffects();
