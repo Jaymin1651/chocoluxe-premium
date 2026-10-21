@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChocoLuxe product</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="product.js" defer></script>
+  </head>
+  <body>
+    <main class="detail-page">
+      <div class="detail-wrap">
+        <a class="back-link" href="index.html">← Back</a>
+
+        <div class="detail-card">
+          <div class="detail-gallery-wrap">
+            <div class="gallery" id="gallery" aria-label="Product gallery">
+              <div class="gallery-track" id="galleryTrack"></div>
+            </div>
+            <div class="gallery-dots" id="galleryDots" aria-label="Choose a product image"></div>
+          </div>
+
+          <div class="detail-info">
+            <span class="detail-tag" id="detailCategory">Classic</span>
+            <h1 id="detailName">Milk</h1>
+
+            <div class="size-switcher" aria-label="Select 200g or 400g product size">
+              <button class="size-tab active" type="button" data-size="200">200g</button>
+              <button class="size-tab" type="button" data-size="400">400g</button>
+            </div>
+
+            <div class="detail-price-line">
+              <strong id="detailPrice">₹155</strong>
+              <span>per box</span>
+            </div>
+
+            <p id="detailDescription">Creamy, smooth and loved by every chocolate lover.</p>
+
+            <div class="fssai-strip">
+              <img src="fssai image.png" alt="FSSAI approved" />
+              <span>FSSAI certified • Premium handmade chocolate</span>
+            </div>
+
+            <div class="detail-actions">
+              <button id="detailAdd" class="primary-action" type="button">Add to tray</button>
+              <a href="index.html#collection" class="secondary-action">Continue</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
