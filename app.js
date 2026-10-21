@@ -8,7 +8,7 @@ const descriptions = {
   dark: 'Smooth, deep and beautifully balanced. A timeless cocoa character for moments that call for a richer bite.',
   'extra-dark': 'A bold, intense cocoa character with a lingering finish. A little indulgence for the devoted chocolate lover.',
   fusion: 'A hand-marbled swirl of bold and creamy chocolate, finished with a striking look and a playful bite.',
-  paan: 'A familiar paan-inspired flavour in a playful chocolate form. A colourful addition to your gifting selection or tasting tray.',
+  paan: 'A familiar paan-inspired flavour in a playful chocolate form. A colourful addition to your gifting selection or cart.',
   butterscotch: 'Chocolate meets golden butterscotch pieces for a sweet, satisfying crunch. A little texture in every indulgent bite.',
   'choco-crunch': 'A chocolate favourite with a crisp, crunchy texture. Made for anyone who likes a little extra bite with their chocolate.'
 };
@@ -48,7 +48,7 @@ function trayTotals() {
 function updateTray() {
   const total = trayTotals();
   $('#headerCount').textContent = total.count;
-  $('#headerTray').setAttribute('aria-label', `View tasting tray, ${total.count} boxes`);
+  $('#headerTray').setAttribute('aria-label', `View cart, ${total.count} boxes`);
   $('#tray').hidden = total.count === 0;
   cards.forEach(card => { card.querySelector('.quick-add').disabled = (tray[card.dataset.id] || 0) >= 999; });
   $('#traySummary').textContent = `${total.count} box${total.count === 1 ? '' : 'es'} · ${currency(total.price)}`;
@@ -368,3 +368,41 @@ motionPreference.addEventListener('change', event => {
   else if (!revealObserver) initialiseScrollEffects();
 });
 initialiseScrollEffects();
+
+
+/* Swipeable product photograph ↔ FSSAI registration image on each product card. */
+cards.forEach(card => {
+  const frame = card.querySelector('.product-photo');
+  const image = frame.querySelector('.photo-open img');
+  const badge = frame.querySelector('.badge');
+  const originalImage = image.getAttribute('src');
+  const originalAlt = image.alt;
+  const originalBadge = badge ? badge.textContent : '';
+  let slide = 0;
+  let touchStartX = 0;
+  let didSwipe = false;
+  const paint = next => {
+    slide = (next + 2) % 2;
+    frame.classList.toggle('is-fssai', slide === 1);
+    image.src = slide === 1 ? 'fssai image.png' : originalImage;
+    image.alt = slide === 1 ? 'ChocoLuxe FSSAI registration document' : originalAlt;
+    if (badge) badge.textContent = slide === 1 ? 'FSSAI registration' : originalBadge;
+    const count = frame.querySelector('.gallery-count');
+    if (count) count.textContent = slide === 1 ? '2 / 2 · FSSAI' : '1 / 2 · Product';
+  };
+  frame.querySelector('.gallery-prev')?.addEventListener('click', event => {
+    event.preventDefault(); event.stopPropagation(); paint(slide - 1);
+  });
+  frame.querySelector('.gallery-next')?.addEventListener('click', event => {
+    event.preventDefault(); event.stopPropagation(); paint(slide + 1);
+  });
+  frame.addEventListener('touchstart', event => { touchStartX = event.changedTouches[0].clientX; }, {passive:true});
+  frame.addEventListener('touchend', event => {
+    const dx = event.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 45) { didSwipe = true; paint(slide + (dx < 0 ? 1 : -1)); }
+  }, {passive:true});
+  frame.addEventListener('click', event => {
+    if (didSwipe) { event.preventDefault(); event.stopImmediatePropagation(); didSwipe = false; }
+  }, true);
+  paint(0);
+});
