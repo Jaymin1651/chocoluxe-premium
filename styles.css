@@ -172,3 +172,13 @@ html { scroll-padding-top: 130px; }
   .scroll-reveal, .scroll-reveal.is-visible, .scroll-reveal:focus-within { opacity: 1; translate: none; transition: none; }
   .header { position: static; }
 }
+
+/* Swipeable product/FSSAI galleries */
+.product-photo{position:relative;touch-action:pan-y}
+.product-gallery-controls{position:absolute;inset:auto 10px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;z-index:3;pointer-events:none}
+.product-gallery-controls button{pointer-events:auto;display:grid;place-items:center;width:31px;height:31px;border-radius:50%;background:#fffdf2ed;border:1px solid #e6dfd1;color:#302019;font-size:22px;line-height:1;box-shadow:0 3px 12px #30201918}
+.product-gallery-controls button:focus-visible{outline:2px solid #916c31;outline-offset:2px}
+.gallery-count{background:#fffdf2ed;border:1px solid #e6dfd1;border-radius:20px;padding:5px 10px;font-size:9px;letter-spacing:.03em;color:#302019;box-shadow:0 3px 12px #30201912}
+.product-photo.is-fssai .photo-open img{object-fit:contain;background:#fffdf8;padding:12px}
+.product-photo.is-fssai .photo-open .badge{background:#302019;color:#fffdf8}
+@media(max-width:600px){.product-gallery-controls{inset:auto 8px 8px}.product-gallery-controls button{width:34px;height:34px}.gallery-count{font-size:9px}}
