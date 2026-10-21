@@ -182,3 +182,11 @@ html { scroll-padding-top: 130px; }
 .product-photo.is-fssai .photo-open img{object-fit:contain;background:#fffdf8;padding:12px}
 .product-photo.is-fssai .photo-open .badge{background:#302019;color:#fffdf8}
 @media(max-width:600px){.product-gallery-controls{inset:auto 8px 8px}.product-gallery-controls button{width:34px;height:34px}.gallery-count{font-size:9px}}
+
+
+/* Homepage galleries are gesture-first: no visible arrow buttons. */
+.product-gallery-controls{justify-content:center;inset:auto 10px 10px;pointer-events:none}
+.product-gallery-controls .gallery-arrow{display:none!important}
+.gallery-count{opacity:.94;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.product-photo .photo-open img{user-select:none;-webkit-user-drag:none}
+@media(hover:hover) and (pointer:fine){.product-photo{cursor:grab}.product-photo:active{cursor:grabbing}}
